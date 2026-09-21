@@ -1,0 +1,72 @@
+# Describe the business here, then run:  sitegen build business.yaml
+# Every section except `business.name` is optional — delete what you don't need
+# and the matching part of the website disappears with it.
+
+site_url: https://example.com
+
+business:
+  name: Rosewood Bakery
+  tagline: Sourdough, pastries and unhurried coffee
+  description: >
+    A neighbourhood bakery working with slow ferments and local flour.
+    Everything is baked in the morning and sold the same day.
+  # schema.org type, used for search engine rich results.
+  # Bakery, Restaurant, Cafe, HairSalon, Plumber, Dentist, Florist, ...
+  type: Bakery
+  phone: "+1 555 010 2030"
+  email: hello@rosewoodbakery.example
+  address:
+    street: 12 Market Street
+    city: Springfield
+    region: Illinois
+    postal_code: "62701"
+    country: USA
+  # map_url is derived from the address when you leave it out
+  # map_url: https://maps.google.com/?q=...
+
+brand:
+  primary: "#8a5a2b"
+  accent: "#e8b04b"
+  # Any Google Font family name. Remove this line to use system fonts.
+  font: Inter
+
+hours:
+  monday: "7:00-15:00"
+  tuesday: "7:00-15:00"
+  wednesday: "7:00-15:00"
+  thursday: "7:00-15:00"
+  friday: "7:00-17:00"
+  saturday: "8:00-14:00"
+  sunday: closed
+
+services:
+  - name: Sourdough breads
+    description: Naturally leavened loaves, baked fresh every morning.
+    price: from $6
+  - name: Pastries
+    description: Croissants, kouign-amann and seasonal fruit danishes.
+    price: from $3
+  - name: Celebration cakes
+    description: Made to order for birthdays and weddings. Two weeks' notice.
+    price: from $45
+
+about:
+  heading: Our story
+  body: |
+    We started in 2014 with one deck oven and a stubborn sourdough starter
+    named Doris, who is still with us.
+
+    Today we mill part of our own flour and work with two farms within
+    forty miles of the shop.
+
+cta:
+  label: Order for pickup
+  url: tel:+15550102030
+
+social:
+  instagram: https://instagram.com/example
+  facebook: https://facebook.com/example
+
+seo:
+  title: Rosewood Bakery — fresh sourdough in Springfield
+  description: A neighbourhood bakery in Springfield, Illinois. Sourdough breads, pastries and celebration cakes baked fresh daily.
