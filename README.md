@@ -11,6 +11,79 @@ sitegen validate business.yaml # check it without generating anything
 sitegen build business.yaml    # generate the site into ./site
 ```
 
+## Getting started
+
+**This repository is the generator, not a website.** Running it does not give
+you a page to visit — it produces a separate website folder, and that folder is
+what you run. So there are two stages, and they need different tools:
+
+| | Needs | Produces |
+| --- | --- | --- |
+| Stage 1: the generator | Python 3.10+ | a website folder |
+| Stage 2: the website | Node.js 22.12+ | a running site |
+
+### Stage 1 — set up the generator
+
+```bash
+git clone https://github.com/jmaciaszczyk/test.git
+```
+
+```bash
+cd test
+```
+
+```bash
+py -m venv .venv
+```
+
+```bash
+.venv\Scripts\python.exe -m pip install .
+```
+
+On Windows use `py`, not `python` — on many machines `python` resolves to the
+Microsoft Store stub, which does nothing. On macOS and Linux the last two
+commands are `python3 -m venv .venv` and `.venv/bin/pip install .`
+
+### Stage 2 — create a website
+
+The easiest route is the form:
+
+```bash
+.venv\Scripts\sitegen.exe serve
+```
+
+Open <http://127.0.0.1:8765>, fill it in, press **Download website**, and unzip
+the result. Or skip the browser and use the CLI:
+
+```bash
+.venv\Scripts\sitegen.exe build examples\bike-shop.yaml -o mysite
+```
+
+### Stage 3 — run the website
+
+From inside the generated folder:
+
+```bash
+npm install
+```
+
+```bash
+npm run dev
+```
+
+The site is then at <http://localhost:4321>.
+
+## Putting it online
+
+```bash
+npm run build
+```
+
+That writes a plain static site to `dist/`, which any static host will serve —
+Netlify, Vercel, Cloudflare Pages, GitHub Pages, or your own server. There is
+no backend to deploy. Set `site` in `astro.config.mjs` to the real domain
+first, since that value feeds the structured data search engines read.
+
 ## The builder
 
 `sitegen serve` opens a local page at <http://127.0.0.1:8765> with a form
@@ -21,16 +94,6 @@ leaves the machine — the server binds to the loopback interface only.
 
 It is the route to hand a non-technical owner: they fill in the form, download
 the ZIP, and the only remaining step is `npm install && npm run dev`.
-
-## Installing
-
-```bash
-py -m venv .venv
-.venv\Scripts\python.exe -m pip install -e ".[dev]"
-```
-
-The `sitegen` command is then available at `.venv\Scripts\sitegen.exe`, or on
-your PATH whenever the virtual environment is active.
 
 ## The input file
 
@@ -84,6 +147,13 @@ focused elements, and full `prefers-reduced-motion` support. The mobile menu is
 a `<details>` disclosure, so the whole page ships zero JavaScript.
 
 ## Development
+
+Install it editable with the test extras, so changes take effect without
+reinstalling:
+
+```bash
+.venv\Scripts\python.exe -m pip install -e ".[dev]"
+```
 
 ```bash
 .venv\Scripts\python.exe -m pytest
