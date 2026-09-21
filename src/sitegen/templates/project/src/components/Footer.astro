@@ -4,21 +4,21 @@ import site from "../data/business.json";
 const year = new Date().getFullYear();
 ---
 
-<footer class="border-t border-slate-200 py-10">
-  <div class="mx-auto flex max-w-5xl flex-col gap-4 px-4 sm:flex-row sm:items-center sm:justify-between">
-    <p class="text-sm text-slate-500">
+<footer class="border-t border-border py-10">
+  <div class="mx-auto flex max-w-5xl flex-col gap-3 px-4 sm:flex-row sm:items-center sm:justify-between">
+    <p class="text-sm text-muted-foreground">
       &copy; {year} {site.business.name}
     </p>
 
     {site.social.length > 0 && (
-      <ul class="flex flex-wrap gap-4">
+      <ul class="flex flex-wrap items-center gap-1">
         {site.social.map((link) => (
           <li>
             <a
               href={link.url}
               target="_blank"
               rel="noopener noreferrer"
-              class="text-sm font-medium text-slate-500 transition hover:text-brand-700"
+              class="inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-medium text-muted-foreground transition-colors hover:text-brand-700"
             >
               {link.label}
             </a>

@@ -1,27 +1,31 @@
 ---
+import Icon from "./Icon.astro";
+import Stars from "./Stars.astro";
 import site from "../data/business.json";
 
 const business = site.business;
+const reviews = site.reviews;
 ---
 
-<section class="bg-linear-to-b from-brand-50 to-white">
+<section class="bg-linear-to-b from-muted to-background">
   <div class="mx-auto max-w-5xl px-4 py-20 sm:py-28">
     {business.address.city && (
-      <p class="text-sm font-semibold uppercase tracking-widest text-brand-700">
+      <p class="flex items-center gap-1.5 text-sm font-semibold uppercase tracking-widest text-brand-700">
+        <Icon name="pin" class="size-4" />
         {business.address.city}
       </p>
     )}
 
-    <h1 class="mt-3 text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
+    <h1 class="mt-3 text-4xl font-extrabold tracking-tight text-balance text-foreground sm:text-5xl">
       {business.name}
     </h1>
 
     {business.tagline && (
-      <p class="mt-4 text-xl text-slate-600">{business.tagline}</p>
+      <p class="mt-4 text-xl text-pretty text-muted-foreground">{business.tagline}</p>
     )}
 
     {business.description && (
-      <p class="mt-6 max-w-2xl text-lg leading-relaxed text-slate-600">
+      <p class="mt-6 max-w-2xl text-lg leading-relaxed text-pretty text-muted-foreground">
         {business.description}
       </p>
     )}
@@ -30,7 +34,7 @@ const business = site.business;
       {site.cta.url && (
         <a
           href={site.cta.url}
-          class="rounded-full bg-brand-600 px-6 py-3 text-base font-semibold text-on-brand transition hover:bg-brand-700"
+          class="inline-flex min-h-12 items-center rounded-full bg-brand-600 px-6 text-base font-semibold text-on-brand transition-colors hover:bg-brand-700"
         >
           {site.cta.label}
         </a>
@@ -38,11 +42,20 @@ const business = site.business;
       {business.phoneHref && (
         <a
           href={business.phoneHref}
-          class="rounded-full border border-slate-300 px-6 py-3 text-base font-semibold text-slate-700 transition hover:border-brand-400 hover:text-brand-700"
+          class="inline-flex min-h-12 items-center gap-2 rounded-full border border-border px-6 text-base font-semibold text-foreground transition-colors hover:border-brand-400 hover:text-brand-700"
         >
+          <Icon name="phone" class="size-4" />
           {business.phone}
         </a>
       )}
     </div>
+
+    {reviews.rating !== null && (
+      <p class="mt-8 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
+        <Stars rating={reviews.rating} />
+        <span class="font-semibold text-foreground">{reviews.rating}</span>
+        {reviews.count && <span>from {reviews.count} reviews</span>}
+      </p>
+    )}
   </div>
 </section>

@@ -62,6 +62,73 @@ def ramp(hex_color: str) -> dict[int, str]:
     return shades
 
 
+# Lightness per stop for the neutral ramp, which carries a trace of the brand
+# hue so greys sit with the brand instead of against it.
+_NEUTRAL_LIGHTNESS = {
+    50: 0.98,
+    100: 0.96,
+    200: 0.90,
+    300: 0.82,
+    400: 0.64,
+    500: 0.47,
+    600: 0.36,
+    700: 0.28,
+    800: 0.19,
+    900: 0.12,
+    950: 0.07,
+}
+
+
+def _rgb_to_hsl(red: int, green: int, blue: int) -> tuple[float, float, float]:
+    r, g, b = red / 255, green / 255, blue / 255
+    high, low = max(r, g, b), min(r, g, b)
+    lightness = (high + low) / 2
+
+    if high == low:
+        return 0.0, 0.0, lightness
+
+    delta = high - low
+    saturation = delta / (2 - high - low) if lightness > 0.5 else delta / (high + low)
+    if high == r:
+        hue = ((g - b) / delta) % 6
+    elif high == g:
+        hue = (b - r) / delta + 2
+    else:
+        hue = (r - g) / delta + 4
+    return hue * 60, saturation, lightness
+
+
+def _hsl_to_rgb(hue: float, saturation: float, lightness: float) -> tuple[int, int, int]:
+    chroma = (1 - abs(2 * lightness - 1)) * saturation
+    second = chroma * (1 - abs(((hue / 60) % 2) - 1))
+    match = lightness - chroma / 2
+
+    if hue < 60:
+        rgb = (chroma, second, 0.0)
+    elif hue < 120:
+        rgb = (second, chroma, 0.0)
+    elif hue < 180:
+        rgb = (0.0, chroma, second)
+    elif hue < 240:
+        rgb = (0.0, second, chroma)
+    elif hue < 300:
+        rgb = (second, 0.0, chroma)
+    else:
+        rgb = (chroma, 0.0, second)
+
+    return tuple(round((channel + match) * 255) for channel in rgb)
+
+
+def neutral_ramp(hex_color: str, saturation: float = 0.08) -> dict[int, str]:
+    """Build a near-grey ramp that keeps a hint of the brand hue."""
+    hue, _, _ = _rgb_to_hsl(*to_rgb(hex_color))
+    shades = {}
+    for stop, lightness in _NEUTRAL_LIGHTNESS.items():
+        red, green, blue = _hsl_to_rgb(hue, saturation, lightness)
+        shades[stop] = f"#{red:02x}{green:02x}{blue:02x}"
+    return shades
+
+
 def _channel_luminance(channel: int) -> float:
     ratio = channel / 255
     return ratio / 12.92 if ratio <= 0.04045 else ((ratio + 0.055) / 1.055) ** 2.4

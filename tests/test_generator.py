@@ -41,7 +41,18 @@ def test_generate_writes_a_runnable_project(site_data, tmp_path):
 def test_every_component_imported_by_the_page_exists(site_data, tmp_path):
     generator.generate(site_data, tmp_path)
     components = tmp_path / "src" / "components"
-    for name in ["Header", "Hero", "Services", "About", "Hours", "Contact", "Footer"]:
+    for name in [
+        "Header",
+        "Hero",
+        "Reviews",
+        "Services",
+        "About",
+        "Hours",
+        "Contact",
+        "Footer",
+        "Icon",
+        "Stars",
+    ]:
         assert (components / f"{name}.astro").is_file()
 
 
@@ -65,6 +76,28 @@ def test_stylesheet_carries_the_brand_color_and_font(site_data, tmp_path):
     assert '@import "tailwindcss";' in css
     assert "--color-brand-500: #1f6f5c;" in css
     assert '--font-sans: "Source Sans 3"' in css
+
+
+def test_stylesheet_defines_semantic_roles(site_data, tmp_path):
+    generator.generate(site_data, tmp_path)
+    css = (tmp_path / "src" / "styles" / "global.css").read_text("utf-8")
+    for token in ["--color-background", "--color-muted-foreground", "--color-ring"]:
+        assert f"{token}:" in css
+
+
+def test_stylesheet_respects_reduced_motion(site_data, tmp_path):
+    generator.generate(site_data, tmp_path)
+    css = (tmp_path / "src" / "styles" / "global.css").read_text("utf-8")
+    assert "prefers-reduced-motion: reduce" in css
+    # Smooth scrolling must be opt-in, never unconditional.
+    assert "prefers-reduced-motion: no-preference" in css
+    assert "scroll-padding-top" in css
+
+
+def test_components_use_semantic_tokens_not_raw_palette_steps(site_data, tmp_path):
+    generator.generate(site_data, tmp_path)
+    for path in (tmp_path / "src").rglob("*.astro"):
+        assert "slate-" not in path.read_text("utf-8"), f"{path} uses a raw palette step"
 
 
 def test_templates_leave_no_unrendered_jinja(site_data, tmp_path):

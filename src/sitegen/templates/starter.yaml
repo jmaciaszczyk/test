@@ -21,6 +21,10 @@ business:
     region: Illinois
     postal_code: "62701"
     country: USA
+    # Coordinates are optional. Supply them and the contact section shows an
+    # embedded map; leave them out and it shows a directions link instead.
+    lat: 39.7817
+    lon: -89.6501
   # map_url is derived from the address when you leave it out
   # map_url: https://maps.google.com/?q=...
 
@@ -49,6 +53,22 @@ services:
   - name: Celebration cakes
     description: Made to order for birthdays and weddings. Two weeks' notice.
     price: from $45
+
+# Reviews are the strongest trust signal on a local business page, and the
+# rating below is also emitted as schema.org data for search results.
+reviews:
+  rating: 4.8
+  count: 126
+  items:
+    - quote: The sourdough is the best I have had outside of San Francisco.
+      author: Marta L.
+      rating: 5
+    - quote: They made our wedding cake and it was exactly what we asked for.
+      author: Dan R.
+      rating: 5
+    - quote: Small queue most mornings but it moves fast and it is worth it.
+      author: Priya S.
+      rating: 4
 
 about:
   heading: Our story

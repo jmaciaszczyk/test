@@ -50,6 +50,7 @@ _TOP_LEVEL_KEYS = {
     "seo",
     "site_url",
     "lang",
+    "reviews",
 }
 
 _CLOSED_WORDS = {"closed", "zamkniete", "zamknięte", "-", "—"}
@@ -107,6 +108,30 @@ def _text(
     return value.strip()
 
 
+def _number(
+    data: dict,
+    key: str,
+    path: str,
+    errors: list[str],
+    *,
+    minimum: float | None = None,
+    maximum: float | None = None,
+) -> float | None:
+    value = data.get(key)
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        errors.append(f"{path}.{key}: expected a number")
+        return None
+    if minimum is not None and value < minimum:
+        errors.append(f"{path}.{key}: must be at least {minimum}")
+        return None
+    if maximum is not None and value > maximum:
+        errors.append(f"{path}.{key}: must be at most {maximum}")
+        return None
+    return float(value)
+
+
 def _phone_href(phone: str) -> str:
     cleaned = re.sub(r"[^\d+]", "", phone)
     cleaned = cleaned[:1] + cleaned[1:].replace("+", "")
@@ -128,7 +153,59 @@ def _address(raw: dict, path: str, errors: list[str]) -> dict:
     locality = " ".join(part for part in [address["postalCode"], address["city"]] if part)
     parts = [address["street"], locality, address["region"], address["country"]]
     address["oneLine"] = ", ".join(part for part in parts if part)
+
+    latitude = _number(raw, "lat", path, errors, minimum=-90, maximum=90)
+    longitude = _number(raw, "lon", path, errors, minimum=-180, maximum=180)
+    address["lat"] = latitude
+    address["lon"] = longitude
+    address["mapEmbedUrl"] = _map_embed(latitude, longitude)
     return address
+
+
+def _map_embed(latitude: float | None, longitude: float | None) -> str:
+    """OpenStreetMap embed for the address, which needs no API key.
+
+    Coordinates are optional, so a business that has not supplied them falls
+    back to the plain "open in maps" link instead of an embedded map.
+    """
+    if latitude is None or longitude is None:
+        return ""
+    span = 0.004
+    bbox = f"{longitude - span},{latitude - span},{longitude + span},{latitude + span}"
+    return (
+        "https://www.openstreetmap.org/export/embed.html"
+        f"?bbox={bbox}&layer=mapnik&marker={latitude},{longitude}"
+    )
+
+
+def _reviews(raw: Any, errors: list[str]) -> dict:
+    data = _mapping(raw, "reviews", errors)
+    items = []
+    raw_items = data.get("items")
+    if raw_items is not None and not isinstance(raw_items, list):
+        errors.append("reviews.items: expected a list")
+        raw_items = None
+
+    for index, item in enumerate(raw_items or []):
+        path = f"reviews.items[{index}]"
+        entry = _mapping(item, path, errors)
+        if not entry:
+            continue
+        items.append(
+            {
+                "quote": _text(entry, "quote", path, errors, required=True),
+                "author": _text(entry, "author", path, errors),
+                "rating": _number(entry, "rating", path, errors, minimum=1, maximum=5),
+            }
+        )
+
+    rating = _number(data, "rating", "reviews", errors, minimum=0, maximum=5)
+    count = _number(data, "count", "reviews", errors, minimum=0)
+    return {
+        "rating": rating,
+        "count": int(count) if count is not None else None,
+        "items": items,
+    }
 
 
 def _hours(raw: Any, errors: list[str], warnings: list[str]) -> list[dict]:
@@ -223,13 +300,25 @@ def _brand(raw: Any, errors: list[str]) -> dict:
     accent = color("accent", DEFAULT_ACCENT)
     font = _text(data, "font", "brand", errors)
 
+    neutral = colors.neutral_ramp(primary)
     return {
         "primary": primary,
         "accent": accent,
         "primaryRamp": colors.ramp(primary),
         "accentRamp": colors.ramp(accent),
+        "neutralRamp": neutral,
         "onPrimary": colors.best_foreground(primary),
         "onAccent": colors.best_foreground(accent),
+        # Semantic roles, so components never reach for a raw palette step.
+        "semantic": {
+            "background": "#ffffff",
+            "foreground": neutral[900],
+            "card": "#ffffff",
+            "muted": neutral[50],
+            "muted-foreground": neutral[600],
+            "border": neutral[200],
+            "ring": primary,
+        },
         "font": font,
         "fontUrl": _google_font_url(font) if font else "",
     }
@@ -281,6 +370,7 @@ def build_site_data(raw: Any) -> tuple[dict, list[str]]:
 
     hours = _hours(root.get("hours"), errors, warnings)
     services = _services(root.get("services"), errors)
+    reviews = _reviews(root.get("reviews"), errors)
     social = _social(root.get("social"), errors)
     brand = _brand(root.get("brand"), errors)
 
@@ -330,6 +420,7 @@ def build_site_data(raw: Any) -> tuple[dict, list[str]]:
         "brand": brand,
         "hours": hours,
         "services": services,
+        "reviews": reviews,
         "about": about,
         "cta": {"label": cta_label, "url": cta_url},
         "social": social,
@@ -373,6 +464,13 @@ def _structured_data(data: dict) -> dict:
     if postal:
         schema["address"] = {"@type": "PostalAddress", **postal}
 
+    if address["lat"] is not None and address["lon"] is not None:
+        schema["geo"] = {
+            "@type": "GeoCoordinates",
+            "latitude": address["lat"],
+            "longitude": address["lon"],
+        }
+
     opening = [entry["schema"] for entry in data["hours"] if entry["schema"]]
     if opening:
         schema["openingHours"] = opening
@@ -380,5 +478,32 @@ def _structured_data(data: dict) -> dict:
     links = [link["url"] for link in data["social"]]
     if links:
         schema["sameAs"] = links
+
+    reviews = data["reviews"]
+    # schema.org only accepts an aggregate rating when both halves are present.
+    if reviews["rating"] is not None and reviews["count"]:
+        schema["aggregateRating"] = {
+            "@type": "AggregateRating",
+            "ratingValue": reviews["rating"],
+            "reviewCount": reviews["count"],
+        }
+
+    quoted = []
+    for review in reviews["items"]:
+        if not review["author"]:
+            continue
+        entry: dict[str, Any] = {
+            "@type": "Review",
+            "author": {"@type": "Person", "name": review["author"]},
+            "reviewBody": review["quote"],
+        }
+        if review["rating"] is not None:
+            entry["reviewRating"] = {
+                "@type": "Rating",
+                "ratingValue": review["rating"],
+            }
+        quoted.append(entry)
+    if quoted:
+        schema["review"] = quoted
 
     return schema

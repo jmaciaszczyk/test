@@ -7,18 +7,49 @@
   {% for stop, value in brand.accentRamp.items() %}
   --color-accent-{{ stop }}: {{ value }};
   {% endfor %}
+  {% for stop, value in brand.neutralRamp.items() %}
+  --color-neutral-{{ stop }}: {{ value }};
+  {% endfor %}
+
+  /* Semantic roles. Components use these, never a raw palette step. */
+  {% for name, value in brand.semantic.items() %}
+  --color-{{ name }}: {{ value }};
+  {% endfor %}
   --color-on-brand: {{ brand.onPrimary }};
   --color-on-accent: {{ brand.onAccent }};
   {% if brand.font %}
+
   --font-sans: "{{ brand.font }}", ui-sans-serif, system-ui, sans-serif;
   {% endif %}
 }
 
-html {
-  scroll-behavior: smooth;
+@layer base {
+  /* Keeps anchor targets and keyboard focus clear of the sticky header
+     (WCAG 2.2 "focus not obscured"). */
+  html {
+    scroll-padding-top: 5.5rem;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+
+  /* Fallback ring for anything not given an explicit focus-visible style. */
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
 }
 
-/* Anchor links land below the sticky header instead of under it. */
-[id] {
-  scroll-margin-top: 5rem;
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

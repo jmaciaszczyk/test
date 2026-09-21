@@ -134,6 +134,90 @@ def test_language_defaults_to_english_and_can_be_overridden():
     assert build(lang="pl")[0]["lang"] == "pl"
 
 
+def test_reviews_are_parsed_with_their_ratings():
+    data, _ = build(
+        reviews={
+            "rating": 4.8,
+            "count": 126,
+            "items": [{"quote": "Great bread.", "author": "Marta L.", "rating": 5}],
+        }
+    )
+    assert data["reviews"]["rating"] == 4.8
+    assert data["reviews"]["count"] == 126
+    assert data["reviews"]["items"][0]["author"] == "Marta L."
+
+
+def test_reviews_require_a_quote():
+    with pytest.raises(ConfigError) as excinfo:
+        build(reviews={"items": [{"author": "Nobody"}]})
+    assert any("quote" in error for error in excinfo.value.errors)
+
+
+def test_review_rating_is_bounded():
+    with pytest.raises(ConfigError, match="at most 5"):
+        build(reviews={"items": [{"quote": "Good", "rating": 9}]})
+
+
+def test_aggregate_rating_needs_both_halves():
+    with_count, _ = build(reviews={"rating": 4.8, "count": 12})
+    assert with_count["structuredData"]["aggregateRating"]["reviewCount"] == 12
+
+    without_count, _ = build(reviews={"rating": 4.8})
+    assert "aggregateRating" not in without_count["structuredData"]
+
+
+def test_reviews_reach_the_structured_data():
+    data, _ = build(
+        reviews={"items": [{"quote": "Great bread.", "author": "Marta L.", "rating": 5}]}
+    )
+    review = data["structuredData"]["review"][0]
+    assert review["author"]["name"] == "Marta L."
+    assert review["reviewRating"]["ratingValue"] == 5
+
+
+def test_coordinates_produce_a_map_embed_and_geo_data():
+    data, _ = build_site_data(
+        {
+            "business": {
+                "name": "Test Shop",
+                "address": {"city": "Bristol", "lat": 51.4545, "lon": -2.5879},
+            }
+        }
+    )
+    assert "openstreetmap.org" in data["business"]["address"]["mapEmbedUrl"]
+    assert data["structuredData"]["geo"]["latitude"] == 51.4545
+
+
+def test_missing_coordinates_leave_the_map_embed_empty():
+    data, _ = build_site_data(
+        {"business": {"name": "Test Shop", "address": {"city": "Bristol"}}}
+    )
+    assert data["business"]["address"]["mapEmbedUrl"] == ""
+    assert "geo" not in data["structuredData"]
+
+
+def test_out_of_range_latitude_is_rejected():
+    with pytest.raises(ConfigError, match="at most 90"):
+        build_site_data(
+            {"business": {"name": "Test Shop", "address": {"lat": 200, "lon": 0}}}
+        )
+
+
+def test_brand_exposes_semantic_roles():
+    data, _ = build(brand={"primary": "#1f6f5c"})
+    semantic = data["brand"]["semantic"]
+    assert semantic["ring"] == "#1f6f5c"
+    assert set(semantic) == {
+        "background",
+        "foreground",
+        "card",
+        "muted",
+        "muted-foreground",
+        "border",
+        "ring",
+    }
+
+
 def test_errors_are_collected_together():
     with pytest.raises(ConfigError) as excinfo:
         build_site_data({"business": {}, "brand": {"primary": "nope"}})
