@@ -5,10 +5,22 @@ into a complete, deployable [Astro](https://astro.build) website styled with
 Tailwind CSS.
 
 ```bash
+sitegen serve                  # fill in a form in the browser, download the site
 sitegen init business.yaml     # write a starter file to fill in
 sitegen validate business.yaml # check it without generating anything
 sitegen build business.yaml    # generate the site into ./site
 ```
+
+## The builder
+
+`sitegen serve` opens a local page at <http://127.0.0.1:8765> with a form
+covering every field below. It validates as you go using the same code the CLI
+uses, previews the colour ramp your brand colour produces, and hands back
+either the finished website as a ZIP or a `business.yaml` for the CLI. Nothing
+leaves the machine — the server binds to the loopback interface only.
+
+It is the route to hand a non-technical owner: they fill in the form, download
+the ZIP, and the only remaining step is `npm install && npm run dev`.
 
 ## Installing
 

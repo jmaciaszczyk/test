@@ -8,7 +8,7 @@ from pathlib import Path
 
 import yaml
 
-from sitegen import __version__, generator
+from sitegen import __version__, generator, server
 from sitegen.model import ConfigError, build_site_data
 
 
@@ -87,6 +87,14 @@ def cmd_build(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_serve(args: argparse.Namespace) -> int:
+    try:
+        server.serve(args.host, args.port)
+    except OSError as exc:
+        return _fail(f"cannot listen on {args.host}:{args.port}: {exc}")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="sitegen",
@@ -109,6 +117,13 @@ def build_parser() -> argparse.ArgumentParser:
     build.add_argument("-o", "--output", default="site", help="output directory (default: site)")
     build.add_argument("--force", action="store_true", help="overwrite a non-empty output directory")
     build.set_defaults(func=cmd_build)
+
+    serve = subparsers.add_parser(
+        "serve", help="open a local page for filling in a business and downloading it"
+    )
+    serve.add_argument("--host", default=server.DEFAULT_HOST)
+    serve.add_argument("--port", type=int, default=server.DEFAULT_PORT)
+    serve.set_defaults(func=cmd_serve)
 
     return parser
 

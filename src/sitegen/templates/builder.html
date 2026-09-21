@@ -1,0 +1,734 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>sitegen builder</title>
+<style>
+  :root {
+    --bg: #f7f8f8;
+    --card: #ffffff;
+    --fg: #16201e;
+    --muted: #5b6b68;
+    --border: #dde3e2;
+    --brand: #1f6f5c;
+    --brand-dark: #165042;
+    --danger: #b42318;
+    --danger-bg: #fef3f2;
+    --radius: 12px;
+    --space: 16px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font: 16px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  :focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 4px; }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    background: var(--card);
+    padding: 20px var(--space);
+  }
+  header div { max-width: 1100px; margin: 0 auto; }
+  h1 { margin: 0; font-size: 1.25rem; letter-spacing: -0.01em; }
+  header p { margin: 4px 0 0; color: var(--muted); font-size: 0.9rem; }
+
+  .layout {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: var(--space);
+    display: grid;
+    gap: 24px;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+  @media (min-width: 900px) { .layout { grid-template-columns: minmax(0, 1fr) 300px; } }
+
+  details.card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+  }
+  details.card > summary {
+    cursor: pointer;
+    list-style: none;
+    padding: 14px 18px;
+    font-weight: 650;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    border-radius: var(--radius);
+  }
+  details.card > summary::-webkit-details-marker { display: none; }
+  details.card > summary::after { content: "+"; color: var(--muted); font-size: 1.2rem; }
+  details.card[open] > summary::after { content: "\2212"; }
+  details.card > summary small { font-weight: 400; color: var(--muted); }
+  .body { padding: 0 18px 18px; }
+
+  .grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+  .field label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 5px; }
+  .field .hint { display: block; font-weight: 400; color: var(--muted); font-size: 0.8rem; margin-top: 2px; }
+  input, textarea, select {
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 12px;
+    font: inherit;
+    color: inherit;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  textarea { min-height: 96px; resize: vertical; }
+  input[type="color"] { padding: 4px; height: 44px; cursor: pointer; }
+  input[aria-invalid="true"] { border-color: var(--danger); }
+  .err { color: var(--danger); font-size: 0.82rem; margin: 5px 0 0; }
+
+  button {
+    min-height: 44px;
+    padding: 0 18px;
+    font: inherit;
+    font-weight: 600;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--fg);
+    cursor: pointer;
+  }
+  button:hover { border-color: var(--brand); color: var(--brand-dark); }
+  button.primary { background: var(--brand); border-color: var(--brand); color: #fff; }
+  button.primary:hover { background: var(--brand-dark); color: #fff; }
+  button.link { border: 0; background: none; color: var(--muted); padding: 0 8px; min-height: 36px; }
+  button.link:hover { color: var(--danger); }
+
+  .row { border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 12px; }
+  .row-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .row-head span { font-size: 0.8rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+
+  #summary {
+    background: var(--danger-bg);
+    border: 1px solid var(--danger);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    margin-bottom: 16px;
+  }
+  #summary h2 { margin: 0 0 8px; font-size: 1rem; color: var(--danger); }
+  #summary ul { margin: 0; padding-left: 20px; }
+  #summary a { color: var(--danger); }
+
+  aside { position: sticky; top: var(--space); display: grid; gap: 12px; }
+  .panel { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+  .panel h2 { margin: 0 0 10px; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+  .status { font-size: 0.9rem; }
+  .status.ok { color: var(--brand-dark); }
+  .status.bad { color: var(--danger); }
+  .ramp { display: flex; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
+  .ramp span { flex: 1; height: 28px; }
+  .actions { display: grid; gap: 8px; }
+  .warn { color: #8a6100; font-size: 0.85rem; margin: 6px 0 0; }
+  .hours-grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>sitegen builder</h1>
+    <p>Describe the business, then download a ready-to-deploy website.</p>
+  </div>
+</header>
+
+<div class="layout">
+  <form id="form" novalidate>
+    <div id="summary" role="alert" tabindex="-1" hidden>
+      <h2 id="summary-title">Please fix these before generating</h2>
+      <ul id="summary-list"></ul>
+    </div>
+
+    <details class="card" open>
+      <summary>Business <small>required</small></summary>
+      <div class="body">
+        <div class="grid">
+          <div class="field">
+            <label for="f-business-name">Business name</label>
+            <input id="f-business-name" data-path="business.name" autocomplete="organization" />
+          </div>
+          <div class="field">
+            <label for="f-business-type">Business type
+              <span class="hint">Used for search listings, e.g. Bakery, HairSalon, Plumber</span>
+            </label>
+            <input id="f-business-type" data-path="business.type" placeholder="LocalBusiness" />
+          </div>
+          <div class="field">
+            <label for="f-business-tagline">Tagline</label>
+            <input id="f-business-tagline" data-path="business.tagline" />
+          </div>
+          <div class="field">
+            <label for="f-business-phone">Phone</label>
+            <input id="f-business-phone" data-path="business.phone" type="tel" autocomplete="tel" />
+          </div>
+          <div class="field">
+            <label for="f-business-email">Email</label>
+            <input id="f-business-email" data-path="business.email" type="email" autocomplete="email" />
+          </div>
+        </div>
+        <div class="field" style="margin-top:14px">
+          <label for="f-business-description">Description</label>
+          <textarea id="f-business-description" data-path="business.description"></textarea>
+        </div>
+      </div>
+    </details>
+
+    <details class="card" open>
+      <summary>Address</summary>
+      <div class="body">
+        <div class="grid">
+          <div class="field">
+            <label for="f-address-street">Street</label>
+            <input id="f-address-street" data-path="business.address.street" autocomplete="street-address" />
+          </div>
+          <div class="field">
+            <label for="f-address-city">City</label>
+            <input id="f-address-city" data-path="business.address.city" />
+          </div>
+          <div class="field">
+            <label for="f-address-postal_code">Postcode</label>
+            <input id="f-address-postal_code" data-path="business.address.postal_code" />
+          </div>
+          <div class="field">
+            <label for="f-address-region">Region</label>
+            <input id="f-address-region" data-path="business.address.region" />
+          </div>
+          <div class="field">
+            <label for="f-address-country">Country</label>
+            <input id="f-address-country" data-path="business.address.country" />
+          </div>
+          <div class="field">
+            <label for="f-address-lat">Latitude
+              <span class="hint">Add both to embed a map</span>
+            </label>
+            <input id="f-address-lat" data-path="business.address.lat" type="number" step="any" />
+          </div>
+          <div class="field">
+            <label for="f-address-lon">Longitude</label>
+            <input id="f-address-lon" data-path="business.address.lon" type="number" step="any" />
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <details class="card" open>
+      <summary>Brand</summary>
+      <div class="body">
+        <div class="grid">
+          <div class="field">
+            <label for="f-brand-primary">Primary colour</label>
+            <input id="f-brand-primary" data-path="brand.primary" type="color" value="#1f6f5c" />
+          </div>
+          <div class="field">
+            <label for="f-brand-accent">Accent colour</label>
+            <input id="f-brand-accent" data-path="brand.accent" type="color" value="#f2a65a" />
+          </div>
+          <div class="field">
+            <label for="f-brand-font">Font
+              <span class="hint">Any Google Font family. Leave blank for system fonts.</span>
+            </label>
+            <input id="f-brand-font" data-path="brand.font" />
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary>Opening hours <small>optional</small></summary>
+      <div class="body">
+        <div class="hours-grid" id="hours"></div>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary>Services <small>optional</small></summary>
+      <div class="body">
+        <div data-list="services"></div>
+        <button type="button" data-add="services">Add service</button>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary>Reviews <small>optional, strongest trust signal</small></summary>
+      <div class="body">
+        <div class="grid" style="margin-bottom:14px">
+          <div class="field">
+            <label for="f-reviews-rating">Average rating
+              <span class="hint">0 to 5. Needs a count to appear in search results.</span>
+            </label>
+            <input id="f-reviews-rating" data-path="reviews.rating" type="number" step="0.1" min="0" max="5" />
+          </div>
+          <div class="field">
+            <label for="f-reviews-count">Number of reviews</label>
+            <input id="f-reviews-count" data-path="reviews.count" type="number" min="0" />
+          </div>
+        </div>
+        <div data-list="reviews.items"></div>
+        <button type="button" data-add="reviews.items">Add review</button>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary>About <small>optional</small></summary>
+      <div class="body">
+        <div class="field">
+          <label for="f-about-heading">Heading</label>
+          <input id="f-about-heading" data-path="about.heading" placeholder="About us" />
+        </div>
+        <div class="field" style="margin-top:14px">
+          <label for="f-about-body">Story
+            <span class="hint">Leave a blank line between paragraphs</span>
+          </label>
+          <textarea id="f-about-body" data-path="about.body"></textarea>
+        </div>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary>Call to action <small>optional</small></summary>
+      <div class="body">
+        <div class="grid">
+          <div class="field">
+            <label for="f-cta-label">Button label</label>
+            <input id="f-cta-label" data-path="cta.label" placeholder="Call us" />
+          </div>
+          <div class="field">
+            <label for="f-cta-url">Button link
+              <span class="hint">Defaults to calling the phone number</span>
+            </label>
+            <input id="f-cta-url" data-path="cta.url" />
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary>Social <small>optional</small></summary>
+      <div class="body">
+        <div class="grid" id="social"></div>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary>Search listing <small>optional</small></summary>
+      <div class="body">
+        <div class="grid">
+          <div class="field">
+            <label for="f-site_url">Website address</label>
+            <input id="f-site_url" data-path="site_url" placeholder="https://example.com" />
+          </div>
+          <div class="field">
+            <label for="f-lang">Page language</label>
+            <input id="f-lang" data-path="lang" placeholder="en" />
+          </div>
+        </div>
+        <div class="field" style="margin-top:14px">
+          <label for="f-seo-title">Search result title</label>
+          <input id="f-seo-title" data-path="seo.title" />
+        </div>
+        <div class="field" style="margin-top:14px">
+          <label for="f-seo-description">Search result description</label>
+          <textarea id="f-seo-description" data-path="seo.description"></textarea>
+        </div>
+      </div>
+    </details>
+  </form>
+
+  <aside>
+    <div class="panel">
+      <h2>Status</h2>
+      <p class="status" id="status" aria-live="polite">Enter a business name to begin.</p>
+      <div id="warnings"></div>
+    </div>
+    <div class="panel">
+      <h2>Brand palette</h2>
+      <div class="ramp" id="ramp"></div>
+    </div>
+    <div class="panel">
+      <h2>Download</h2>
+      <div class="actions">
+        <button type="button" class="primary" id="btn-zip">Download website</button>
+        <button type="button" id="btn-yaml">Download business.yaml</button>
+        <button type="button" id="btn-example">Load example</button>
+      </div>
+      <p class="hint" style="margin-top:10px; color:var(--muted); font-size:0.8rem">
+        Unzip, then run <code>npm install</code> and <code>npm run dev</code>.
+      </p>
+    </div>
+  </aside>
+</div>
+
+<script>
+const DAYS = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"];
+const NETWORKS = ["facebook","instagram","x","linkedin","tiktok","youtube"];
+const ROWS = {
+  "services": [
+    {key:"name", label:"Name"},
+    {key:"price", label:"Price"},
+    {key:"description", label:"Description", wide:true},
+  ],
+  "reviews.items": [
+    {key:"author", label:"Customer name"},
+    {key:"rating", label:"Rating out of 5", type:"number", min:1, max:5, step:1},
+    {key:"quote", label:"What they said", wide:true},
+  ],
+};
+
+const form = document.getElementById("form");
+
+// --- build the repeated bits of the form -------------------------------
+const hours = document.getElementById("hours");
+for (const day of DAYS) {
+  const id = `f-hours-${day}`;
+  const wrap = document.createElement("div");
+  wrap.className = "field";
+  wrap.innerHTML =
+    `<label for="${id}">${day[0].toUpperCase() + day.slice(1)}</label>` +
+    `<input id="${id}" data-path="hours.${day}" placeholder="9:00-17:00 or closed" />`;
+  hours.append(wrap);
+}
+
+const social = document.getElementById("social");
+for (const network of NETWORKS) {
+  const id = `f-social-${network}`;
+  const wrap = document.createElement("div");
+  wrap.className = "field";
+  wrap.innerHTML =
+    `<label for="${id}">${network[0].toUpperCase() + network.slice(1)}</label>` +
+    `<input id="${id}" data-path="social.${network}" placeholder="https://" />`;
+  social.append(wrap);
+}
+
+function addRow(list, values = {}) {
+  const host = document.querySelector(`[data-list="${list}"]`);
+  const index = host.children.length;
+  const row = document.createElement("div");
+  row.className = "row";
+  row.dataset.index = index;
+
+  const head = document.createElement("div");
+  head.className = "row-head";
+  head.innerHTML = `<span>${list === "services" ? "Service" : "Review"} ${index + 1}</span>`;
+  const remove = document.createElement("button");
+  remove.type = "button";
+  remove.className = "link";
+  remove.textContent = "Remove";
+  remove.addEventListener("click", () => { row.remove(); renumber(list); validate(); });
+  head.append(remove);
+  row.append(head);
+
+  const grid = document.createElement("div");
+  grid.className = "grid";
+  for (const field of ROWS[list]) {
+    const id = `f-${list.replace(/\W+/g, "-")}-${index}-${field.key}`;
+    const wrap = document.createElement("div");
+    wrap.className = "field";
+    if (field.wide) wrap.style.gridColumn = "1 / -1";
+    const attrs = [
+      `id="${id}"`,
+      `data-key="${field.key}"`,
+      field.type ? `type="${field.type}"` : "",
+      field.min !== undefined ? `min="${field.min}"` : "",
+      field.max !== undefined ? `max="${field.max}"` : "",
+      field.step !== undefined ? `step="${field.step}"` : "",
+    ].filter(Boolean).join(" ");
+    wrap.innerHTML = `<label for="${id}">${field.label}</label><input ${attrs} />`;
+    grid.append(wrap);
+    const input = wrap.querySelector("input");
+    if (values[field.key] !== undefined) input.value = values[field.key];
+  }
+  row.append(grid);
+  host.append(row);
+}
+
+function renumber(list) {
+  const host = document.querySelector(`[data-list="${list}"]`);
+  [...host.children].forEach((row, index) => {
+    row.dataset.index = index;
+    row.querySelector(".row-head span").textContent =
+      `${list === "services" ? "Service" : "Review"} ${index + 1}`;
+  });
+}
+
+for (const button of document.querySelectorAll("[data-add]")) {
+  button.addEventListener("click", () => { addRow(button.dataset.add); });
+}
+
+// --- collect the form into the YAML shape ------------------------------
+function setPath(target, path, value) {
+  const parts = path.split(".");
+  let node = target;
+  for (const part of parts.slice(0, -1)) {
+    node[part] = node[part] || {};
+    node = node[part];
+  }
+  node[parts.at(-1)] = value;
+}
+
+function readInput(input) {
+  const text = input.value.trim();
+  if (text === "") return undefined;
+  if (input.type === "number") {
+    const number = Number(text);
+    return Number.isNaN(number) ? text : number;
+  }
+  return text;
+}
+
+function prune(value) {
+  if (Array.isArray(value)) {
+    const items = value.map(prune).filter((item) => item !== undefined);
+    return items.length ? items : undefined;
+  }
+  if (value && typeof value === "object") {
+    const out = {};
+    for (const [key, item] of Object.entries(value)) {
+      const cleaned = prune(item);
+      if (cleaned !== undefined) out[key] = cleaned;
+    }
+    return Object.keys(out).length ? out : undefined;
+  }
+  return value === "" ? undefined : value;
+}
+
+function collect() {
+  const data = {};
+  for (const input of form.querySelectorAll("[data-path]")) {
+    const value = readInput(input);
+    if (value !== undefined) setPath(data, input.dataset.path, value);
+  }
+  for (const list of Object.keys(ROWS)) {
+    const host = document.querySelector(`[data-list="${list}"]`);
+    const items = [...host.children].map((row) => {
+      const item = {};
+      for (const input of row.querySelectorAll("[data-key]")) {
+        const value = readInput(input);
+        if (value !== undefined) item[input.dataset.key] = value;
+      }
+      return Object.keys(item).length ? item : undefined;
+    }).filter(Boolean);
+    if (items.length) setPath(data, list, items);
+  }
+  return prune(data) || {};
+}
+
+// --- errors -------------------------------------------------------------
+function fieldFor(path) {
+  const direct = form.querySelector(`[data-path="${CSS.escape(path)}"]`);
+  if (direct) return direct;
+  const match = path.match(/^(.+)\[(\d+)\]\.(.+)$/);
+  if (!match) return null;
+  const [, list, index, key] = match;
+  const host = document.querySelector(`[data-list="${list}"]`);
+  const row = host && host.children[Number(index)];
+  return row ? row.querySelector(`[data-key="${CSS.escape(key)}"]`) : null;
+}
+
+function clearErrors() {
+  for (const node of form.querySelectorAll(".err")) node.remove();
+  for (const input of form.querySelectorAll('[aria-invalid="true"]')) {
+    input.removeAttribute("aria-invalid");
+    input.removeAttribute("aria-describedby");
+  }
+}
+
+// A field earns an inline error once the user has actually visited it, and the
+// summary only appears after a failed download. Flagging an untouched form on
+// load would be noise, not help.
+const touched = new Set();
+let attempted = false;
+
+function showErrors(errors) {
+  clearErrors();
+  const summary = document.getElementById("summary");
+  const list = document.getElementById("summary-list");
+  list.innerHTML = "";
+
+  for (const [position, error] of errors.entries()) {
+    const input = fieldFor(error.path);
+    const text = error.path ? `${error.path} — ${error.message}` : error.message;
+
+    if (input && (attempted || touched.has(input))) {
+      if (attempted) {
+        const section = input.closest("details");
+        if (section) section.open = true;
+      }
+      const id = `err-${position}`;
+      const note = document.createElement("p");
+      note.className = "err";
+      note.id = id;
+      note.textContent = error.message;
+      input.setAttribute("aria-invalid", "true");
+      input.setAttribute("aria-describedby", id);
+      input.closest(".field").append(note);
+    }
+
+    if (!attempted) continue;
+
+    const item = document.createElement("li");
+    if (input) {
+      const link = document.createElement("a");
+      link.href = `#${input.id}`;
+      link.textContent = text;
+      link.addEventListener("click", (event) => {
+        event.preventDefault();
+        input.focus();
+      });
+      item.append(link);
+    } else {
+      item.textContent = text;
+    }
+    list.append(item);
+  }
+
+  summary.hidden = !attempted || errors.length === 0;
+  return errors.length > 0;
+}
+
+// --- talking to the server ---------------------------------------------
+async function post(endpoint) {
+  return fetch(endpoint, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(collect()),
+  });
+}
+
+const status = document.getElementById("status");
+const warnings = document.getElementById("warnings");
+const ramp = document.getElementById("ramp");
+
+async function validate({ focusSummary = false } = {}) {
+  let response;
+  try {
+    response = await post("/api/validate");
+  } catch {
+    status.textContent = "Cannot reach the builder. Is it still running?";
+    status.className = "status bad";
+    return false;
+  }
+  const result = await response.json();
+
+  if (!response.ok) {
+    const errors = result.errors || [
+      { path: "", message: result.error || "Unknown problem" },
+    ];
+    showErrors(errors);
+    if (attempted || touched.size) {
+      const count = errors.length;
+      status.textContent = `${count} thing${count === 1 ? "" : "s"} to fix.`;
+      status.className = "status bad";
+    }
+    warnings.replaceChildren();
+    if (focusSummary) document.getElementById("summary").focus();
+    return false;
+  }
+
+  showErrors([]);
+  status.textContent = "Ready to download.";
+  status.className = "status ok";
+
+  warnings.replaceChildren(...(result.warnings || []).map((text) => {
+    const note = document.createElement("p");
+    note.className = "warn";
+    note.textContent = text;
+    return note;
+  }));
+
+  ramp.replaceChildren(...Object.values(result.brand.primaryRamp).map((color) => {
+    const swatch = document.createElement("span");
+    // The model only ever emits #rrggbb, but this stays a value we render.
+    if (/^#[0-9a-f]{6}$/i.test(color)) swatch.style.background = color;
+    return swatch;
+  }));
+  return true;
+}
+
+async function download(endpoint) {
+  attempted = true;
+  if (!(await validate({ focusSummary: true }))) return;
+  const response = await post(endpoint);
+  if (!response.ok) { await validate({ focusSummary: true }); return; }
+
+  const disposition = response.headers.get("Content-Disposition") || "";
+  const name = (disposition.match(/filename="([^"]+)"/) || [, "download"])[1];
+  const url = URL.createObjectURL(await response.blob());
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = name;
+  anchor.click();
+  URL.revokeObjectURL(url);
+}
+
+document.getElementById("btn-zip").addEventListener("click", () => download("/api/generate"));
+document.getElementById("btn-yaml").addEventListener("click", () => download("/api/yaml"));
+
+// Validate on blur, which is where the guidance puts it: late enough not to
+// nag mid-typing, early enough to catch a mistake before submitting.
+form.addEventListener("blur", (event) => {
+  if (!event.target.matches("input, textarea")) return;
+  touched.add(event.target);
+  validate();
+}, true);
+
+document.getElementById("btn-example").addEventListener("click", () => {
+  const example = {
+    "business.name": "Spoke & Chain",
+    "business.type": "BicycleStore",
+    "business.tagline": "Bicycle repairs while you wait",
+    "business.description": "An independent workshop doing everything from puncture repairs to full drivetrain rebuilds.",
+    "business.phone": "+44 20 7946 0812",
+    "business.email": "workshop@spokeandchain.example",
+    "business.address.street": "8 Ashfield Road",
+    "business.address.city": "Bristol",
+    "business.address.postal_code": "BS1 4TR",
+    "business.address.country": "United Kingdom",
+    "business.address.lat": "51.4545",
+    "business.address.lon": "-2.5879",
+    "brand.font": "Source Sans 3",
+    "hours.tuesday": "9:00-18:00",
+    "hours.wednesday": "9:00-18:00",
+    "hours.thursday": "9:00-18:00",
+    "hours.friday": "9:00-19:00",
+    "hours.saturday": "10:00-16:00",
+    "hours.monday": "closed",
+    "hours.sunday": "closed",
+    "reviews.rating": "4.9",
+    "reviews.count": "213",
+    "about.heading": "The workshop",
+    "about.body": "We have been fixing bikes on Ashfield Road since 2011.\n\nTwo mechanics, one bench each.",
+    "cta.label": "Book a service",
+    "cta.url": "mailto:workshop@spokeandchain.example",
+    "site_url": "https://spokeandchain.example",
+  };
+  for (const [path, value] of Object.entries(example)) {
+    const input = form.querySelector(`[data-path="${CSS.escape(path)}"]`);
+    if (input) input.value = value;
+  }
+  for (const list of Object.keys(ROWS)) {
+    document.querySelector(`[data-list="${list}"]`).innerHTML = "";
+  }
+  addRow("services", { name: "Puncture repair", price: "from £12", description: "Most tubes patched in under twenty minutes." });
+  addRow("services", { name: "Full service", price: "£85", description: "Drivetrain strip and clean, brake and gear setup." });
+  addRow("reviews.items", { author: "Owen H.", rating: "5", quote: "Dropped a wheel off at nine, had it back by lunch." });
+  validate();
+});
+
+validate();
+</script>
+</body>
+</html>
