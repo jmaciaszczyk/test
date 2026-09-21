@@ -1,0 +1,25 @@
+---
+import site from "../data/business.json";
+---
+
+<section id="services" class="border-t border-slate-200 py-16 sm:py-20">
+  <div class="mx-auto max-w-5xl px-4">
+    <h2 class="text-3xl font-bold tracking-tight text-slate-900">What we do</h2>
+
+    <ul class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {site.services.map((service) => (
+        <li class="rounded-2xl border border-slate-200 p-6 transition hover:border-brand-300 hover:shadow-sm">
+          <h3 class="text-lg font-semibold text-slate-900">{service.name}</h3>
+          {service.description && (
+            <p class="mt-2 text-sm leading-relaxed text-slate-600">
+              {service.description}
+            </p>
+          )}
+          {service.price && (
+            <p class="mt-4 text-sm font-semibold text-brand-700">{service.price}</p>
+          )}
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>

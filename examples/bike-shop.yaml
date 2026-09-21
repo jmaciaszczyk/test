@@ -1,0 +1,57 @@
+site_url: https://spokeandchain.example
+lang: en
+
+business:
+  name: Spoke & Chain
+  tagline: Bicycle repairs while you wait
+  description: >
+    An independent workshop doing everything from puncture repairs to full
+    drivetrain rebuilds. No appointment needed for small jobs.
+  type: BicycleStore
+  phone: "+44 20 7946 0812"
+  email: workshop@spokeandchain.example
+  address:
+    street: 8 Ashfield Road
+    city: Bristol
+    postal_code: BS1 4TR
+    country: United Kingdom
+
+brand:
+  primary: "#1f6f5c"
+  accent: "#f2a65a"
+  font: Source Sans 3
+
+hours:
+  monday: closed
+  tuesday: "9:00-18:00"
+  wednesday: "9:00-18:00"
+  thursday: "9:00-18:00"
+  friday: "9:00-19:00"
+  saturday: "10:00-16:00"
+  sunday: closed
+
+services:
+  - name: Puncture repair
+    description: Most tubes patched or replaced in under twenty minutes.
+    price: from £12
+  - name: Full service
+    description: Drivetrain strip and clean, brake and gear setup, wheel true.
+    price: £85
+  - name: Wheel building
+    description: Hand-built wheels to order, tensioned and stress-relieved.
+    price: from £140
+
+about:
+  heading: The workshop
+  body: |
+    We have been fixing bikes on Ashfield Road since 2011, mostly for people
+    who ride every day and need the thing working again by tomorrow.
+
+    Two mechanics, one bench each, and a kettle that is always on.
+
+cta:
+  label: Book a service
+  url: mailto:workshop@spokeandchain.example
+
+social:
+  instagram: https://instagram.com/spokeandchain

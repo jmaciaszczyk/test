@@ -54,6 +54,8 @@ def generate(data: dict, out_dir: Path, *, force: bool = False) -> list[Path]:
         loader=FileSystemLoader(str(PROJECT_TEMPLATES)),
         undefined=StrictUndefined,
         keep_trailing_newline=True,
+        trim_blocks=True,
+        lstrip_blocks=True,
         autoescape=False,
     )
     context = {

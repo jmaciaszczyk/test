@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+@theme {
+  {% for stop, value in brand.primaryRamp.items() %}
+  --color-brand-{{ stop }}: {{ value }};
+  {% endfor %}
+  {% for stop, value in brand.accentRamp.items() %}
+  --color-accent-{{ stop }}: {{ value }};
+  {% endfor %}
+  --color-on-brand: {{ brand.onPrimary }};
+  --color-on-accent: {{ brand.onAccent }};
+  {% if brand.font %}
+  --font-sans: "{{ brand.font }}", ui-sans-serif, system-ui, sans-serif;
+  {% endif %}
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Anchor links land below the sticky header instead of under it. */
+[id] {
+  scroll-margin-top: 5rem;
+}

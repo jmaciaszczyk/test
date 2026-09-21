@@ -1,0 +1,37 @@
+---
+import "../styles/global.css";
+import site from "../data/business.json";
+
+const { title, description } = Astro.props;
+const pageTitle = title ?? site.seo.title;
+const pageDescription = description ?? site.seo.description;
+---
+
+<!doctype html>
+<html lang={site.lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={pageDescription} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={pageDescription} />
+    {site.brand.fontUrl && (
+      <Fragment>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link rel="stylesheet" href={site.brand.fontUrl} />
+      </Fragment>
+    )}
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify(site.structuredData)}
+    ></script>
+  </head>
+  <body class="min-h-screen bg-white font-sans text-slate-700 antialiased">
+    <slot />
+  </body>
+</html>

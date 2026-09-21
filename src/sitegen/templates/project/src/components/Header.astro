@@ -1,0 +1,37 @@
+---
+import site from "../data/business.json";
+
+const links = [];
+if (site.services.length > 0) links.push({ href: "#services", label: "Services" });
+if (site.about.paragraphs.length > 0) links.push({ href: "#about", label: "About" });
+if (site.hours.length > 0) links.push({ href: "#hours", label: "Hours" });
+links.push({ href: "#contact", label: "Contact" });
+---
+
+<header class="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur">
+  <div class="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3">
+    <a href="/" class="text-lg font-extrabold tracking-tight text-slate-900">
+      {site.business.name}
+    </a>
+
+    <nav aria-label="Sections" class="hidden items-center gap-6 md:flex">
+      {links.map((link) => (
+        <a
+          href={link.href}
+          class="text-sm font-medium text-slate-600 transition hover:text-brand-700"
+        >
+          {link.label}
+        </a>
+      ))}
+    </nav>
+
+    {site.cta.url && (
+      <a
+        href={site.cta.url}
+        class="rounded-full bg-brand-600 px-4 py-2 text-sm font-semibold text-on-brand transition hover:bg-brand-700"
+      >
+        {site.cta.label}
+      </a>
+    )}
+  </div>
+</header>

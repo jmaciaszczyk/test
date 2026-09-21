@@ -1,0 +1,17 @@
+---
+import site from "../data/business.json";
+---
+
+<section id="about" class="border-t border-slate-200 bg-slate-50 py-16 sm:py-20">
+  <div class="mx-auto max-w-3xl px-4">
+    <h2 class="text-3xl font-bold tracking-tight text-slate-900">
+      {site.about.heading}
+    </h2>
+
+    <div class="mt-6 space-y-4">
+      {site.about.paragraphs.map((paragraph) => (
+        <p class="text-lg leading-relaxed text-slate-600">{paragraph}</p>
+      ))}
+    </div>
+  </div>
+</section>

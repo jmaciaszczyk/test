@@ -1,0 +1,4 @@
+# The smallest file sitegen accepts. Sections you leave out simply do not
+# appear on the generated page.
+business:
+  name: Corner Barbers

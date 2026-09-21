@@ -1,0 +1,63 @@
+---
+import site from "../data/business.json";
+
+const business = site.business;
+---
+
+<section id="contact" class="border-t border-slate-200 bg-slate-50 py-16 sm:py-20">
+  <div class="mx-auto max-w-5xl px-4">
+    <h2 class="text-3xl font-bold tracking-tight text-slate-900">Find us</h2>
+
+    <div class="mt-8 grid gap-8 sm:grid-cols-2">
+      {business.address.oneLine && (
+        <div>
+          <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500">
+            Address
+          </h3>
+          <address class="mt-2 not-italic leading-relaxed text-slate-700">
+            {business.address.street && <span class="block">{business.address.street}</span>}
+            <span class="block">
+              {[business.address.postalCode, business.address.city]
+                .filter(Boolean)
+                .join(" ")}
+            </span>
+            {business.address.region && <span class="block">{business.address.region}</span>}
+            {business.address.country && <span class="block">{business.address.country}</span>}
+          </address>
+          {business.mapUrl && (
+            <a
+              href={business.mapUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="mt-3 inline-block text-sm font-semibold text-brand-700 underline underline-offset-4 hover:text-brand-800"
+            >
+              Open in maps
+            </a>
+          )}
+        </div>
+      )}
+
+      <div>
+        <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-500">
+          Get in touch
+        </h3>
+        <ul class="mt-2 space-y-2 text-slate-700">
+          {business.phoneHref && (
+            <li>
+              <a class="hover:text-brand-700" href={business.phoneHref}>
+                {business.phone}
+              </a>
+            </li>
+          )}
+          {business.email && (
+            <li>
+              <a class="hover:text-brand-700" href={`mailto:${business.email}`}>
+                {business.email}
+              </a>
+            </li>
+          )}
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>

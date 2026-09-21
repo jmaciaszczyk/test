@@ -49,6 +49,7 @@ _TOP_LEVEL_KEYS = {
     "social",
     "seo",
     "site_url",
+    "lang",
 }
 
 _CLOSED_WORDS = {"closed", "zamkniete", "zamknięte", "-", "—"}
@@ -264,6 +265,8 @@ def build_site_data(raw: Any) -> tuple[dict, list[str]]:
 
     business_raw = _mapping(root.get("business"), "business", errors)
     name = _text(business_raw, "name", "business", errors, required=True)
+    if "name" in business_raw and not name:
+        errors.append("business.name: cannot be empty")
     tagline = _text(business_raw, "tagline", "business", errors)
     description = _text(business_raw, "description", "business", errors)
     phone = _text(business_raw, "phone", "business", errors)
@@ -312,6 +315,7 @@ def build_site_data(raw: Any) -> tuple[dict, list[str]]:
         map_url = f"https://www.google.com/maps/search/?api=1&query={query}"
 
     data = {
+        "lang": _text(root, "lang", "<root>", errors) or "en",
         "business": {
             "name": name,
             "tagline": tagline,
